@@ -37,3 +37,19 @@ Session.vim
 .vs/
 samples/advanced/optix7course/models/
 
+/viewer/blender/addons/hayStack/__pycache__/__init__.cpython-310.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_nodes.cpython-310.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_pref.cpython-310.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_render.cpython-310.pyc
+/viewer/blender/addons/hayStack/freeglut.dll
+/viewer/blender/addons/hayStack/glew32.dll
+/viewer/blender/addons/hayStack/gpujpeg.dll
+/viewer/blender/addons/hayStack/hayStack-renderengine.dll
+/viewer/blender/addons/hayStack/__pycache__/__init__.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_dll.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_nodes.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_pref.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_process_handler.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_remote.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_render.cpython-311.pyc
+/viewer/blender/addons/hayStack/__pycache__/haystack_scene.cpython-311.pyc

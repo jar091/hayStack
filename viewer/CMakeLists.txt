@@ -142,6 +142,47 @@ if (HS_CUTEE)
   
 endif()
 
+# ------------------------------------------------------------------
+# blender
+# ------------------------------------------------------------------
+if(BLENDER_ADDON)
+  set(BLENDER_SUBDIRECTORY ON)
+  add_subdirectory(blender)
+endif()
+
+if (HS_BLENDER)
+  # Copy SOURCES to SOURCES_BLENDER
+  set(SOURCES_BLENDER ${SOURCES})
+
+  # Remove main.cpp
+  list(REMOVE_ITEM SOURCES_BLENDER main.cpp)
+
+  add_executable(hsBlender
+    ${SOURCES_BLENDER}
+
+    blender/blender.cpp
+
+    blender/renderengine_tcp.cpp
+    blender/renderengine_tcp.h
+    blender/renderengine_data.h
+    )
+
+  target_compile_definitions(hsBlender PUBLIC -DBLENDER_CLIENT)
+  target_include_directories(hsBlender PUBLIC blender)
+
+  target_link_libraries(hsBlender
+    PUBLIC
+    hayStack
+    )
+
+  if(WITH_CLIENT_GPUJPEG)
+    target_include_directories(hsBlender PUBLIC ${GPUJPEG_INCLUDE_DIR})
+    target_compile_definitions(hsBlender PUBLIC -DWITH_CLIENT_GPUJPEG)
+    target_link_libraries(hsBlender PUBLIC ${GPUJPEG_LIBRARIES})
+  endif()
+
+endif()
+
 
 # ------------------------------------------------------------------
 add_executable(hsDLAFtoPCR

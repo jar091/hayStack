@@ -51,6 +51,16 @@ find_package(CUDAToolkit)
 enable_language(CUDA)
 endif()
 
+option(WITH_CLIENT_GPUJPEG "Enable GPUJPEG" OFF)
+option(BLENDER_ADDON "Enable build HayStack Addon for Blender" OFF)
+
+option(HS_BLENDER "Use Blender viewer?" OFF)
+
+if(WITH_CLIENT_GPUJPEG)
+	set(GPUJPEG_INCLUDE_DIR "" CACHE PATH "")
+  set(GPUJPEG_LIBRARIES "" CACHE FILEPATH "")
+endif()
+
 # ------------------------------------------------------------------
 # owl - do this first so miniScene can pick it up
 # ------------------------------------------------------------------

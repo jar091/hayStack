@@ -1,0 +1,105 @@
+# ======================================================================== //
+# Copyright 2022-2022 Ingo Wald                                            //
+# Copyright 2022-2025 IT4Innovations, VSB - Technical University of Ostrava//
+#                                                                          //
+# Licensed under the Apache License, Version 2.0 (the "License");          //
+# you may not use this file except in compliance with the License.         //
+# You may obtain a copy of the License at                                  //
+#                                                                          //
+#     http://www.apache.org/licenses/LICENSE-2.0                           //
+#                                                                          //
+# Unless required by applicable law or agreed to in writing, software      //
+# distributed under the License is distributed on an "AS IS" BASIS,        //
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
+# See the License for the specific language governing permissions and      //
+# limitations under the License.                                           //
+# ======================================================================== //
+
+if(NOT BLENDER_SUBDIRECTORY)
+    cmake_policy(SET CMP0048 NEW)
+    project(hayStack VERSION 0.0.1 LANGUAGES C CXX)
+
+    cmake_minimum_required(VERSION 3.16)
+    #set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+    option(WITH_CLIENT_GPUJPEG "Enable GPUJPEG" OFF)
+
+    if(WITH_CLIENT_GPUJPEG)
+	    set(GPUJPEG_INCLUDE_DIR "" CACHE PATH "")
+        set(GPUJPEG_LIBRARIES "" CACHE FILEPATH "")
+    endif()    
+
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.18)
+        cmake_policy(SET CMP0104 NEW)
+    endif()
+
+#    if(WIN32)
+#        set(GLAD_SOURCES
+#          ../external/glad/glad.cpp
+#          ../external/glad/glad.h
+#          ../external/glad/khrplatform.h
+#        )
+#        set(GLAD_INCLUDE_DIR
+#           ../external
+#        )
+#    endif()
+
+    #find_package(CUDA REQUIRED)
+    #find_package(OpenGL REQUIRED)
+endif()
+
+set(EPOXY_INCLUDE_DIR "" CACHE PATH "")
+set(EPOXY_LIBRARIES "" CACHE FILEPATH "")
+
+if(WITH_CLIENT_GPUJPEG)
+	add_definitions(-DWITH_CLIENT_GPUJPEG)
+endif()
+
+set(INC
+	 .
+     ${EPOXY_INCLUDE_DIR}
+     ${GPUJPEG_INCLUDE_DIR}
+     ${CUDA_INCLUDE_DIRS}
+     #${OPENGL_INCLUDE_DIR}
+)
+
+set(SRC
+	renderengine.cpp
+    renderengine_tcp.cpp
+)
+
+set(SRC_HEADERS
+    renderengine_api.h
+    renderengine_data.h
+    
+    renderengine_tcp.h
+)
+
+include_directories(${INC})
+add_library(hayStack-renderengine SHARED ${SRC} ${SRC_HEADERS})
+
+target_link_libraries(hayStack-renderengine 
+    #${CUDA_LIBRARIES}
+    #${CUDA_CUDA_LIBRARY} # For CUDA Driver API
+    ${OPENGL_LIBRARIES}
+    ${EPOXY_LIBRARIES}
+    CUDA::cudart
+)
+
+if(WITH_CLIENT_GPUJPEG)
+    target_link_libraries(hayStack-renderengine 
+        ${GPUJPEG_LIBRARIES}
+    )
+endif()
+  
+install (TARGETS hayStack-renderengine DESTINATION addons/hayStack)
+install (FILES addons/hayStack/__init__.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_dll.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_nodes.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_pref.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_process_handler.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_remote.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_render.py DESTINATION addons/hayStack)
+install (FILES addons/hayStack/haystack_scene.py DESTINATION addons/hayStack)
