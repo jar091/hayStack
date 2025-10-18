@@ -1211,19 +1211,18 @@ class HayStackRenderEngine(bpy.types.RenderEngine):
     # Init is called whenever a new render engine instance is created. Multiple
     # instances may exist at the same time, for example for a viewport and final
     # render.
-    def __init__(self):
-        self.engine = None
+    # def __init__(self):
+    #     super().__init__()  # Call parent constructor
+    #     self.engine = None
 
-        dummy = gpu.types.GPUFrameBuffer()
-        dummy.bind()  
+    #     dummy = gpu.types.GPUFrameBuffer()
+    #     dummy.bind()  
 
     # When the render engine instance is destroy, this is called. Clean up any
     # render engine data here, for example stopping running render threads.
     def __del__(self):
         if isinstance(self.engine, ViewportEngine):
             self.engine.stop_render()
-            self.engine = None
-        pass
 
     # final render
     def update(self, data, depsgraph):

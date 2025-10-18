@@ -159,7 +159,7 @@ class HayStackPreferences(bpy.types.AddonPreferences):
         name="Port",
         min=0,
         max=65565,
-        default=8000
+        default=7000
     ) # type: ignore
 
     # haystack_port_data: bpy.props.IntProperty(

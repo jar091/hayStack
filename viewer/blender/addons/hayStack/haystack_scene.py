@@ -69,27 +69,70 @@ class HayStackScene:
         lower_vertex = (hsDataInit.world_bounds_spatial_lower[0], hsDataInit.world_bounds_spatial_lower[1], hsDataInit.world_bounds_spatial_lower[2])
         upper_vertex = (hsDataInit.world_bounds_spatial_upper[0], hsDataInit.world_bounds_spatial_upper[1], hsDataInit.world_bounds_spatial_upper[2])
 
+        # # Calculate size and center position
+        # size = tuple(upper - lower for upper, lower in zip(upper_vertex, lower_vertex))
+        # center = tuple(lower + (size_dim / 2.0) for lower, size_dim in zip(lower_vertex, size))
+
+        # # Create a cube mesh
+        # # if "HayStack BBOX" in bpy.data.objects:
+        # #     self.haystack_bbox = bpy.data.objects["HayStack BBOX"]
+        # # else:
+        # #     bpy.ops.mesh.primitive_cube_add(size=1) # (size=1, location=center)
+        # #     self.haystack_bbox = context.view_layer.objects.active
+        # #     self.haystack_bbox.name = "HayStack BBOX"
+
+        # # context.view_layer.objects.active = self.haystack_bbox
+
+        # # self.haystack_bbox.location=center
+
+        # # # Scale the cube to the desired size
+        # # self.haystack_bbox.scale = (size[0], size[1], size[2])
+
+        # # # Set display type to 'BOUNDS'
+        # # self.haystack_bbox.display_type = 'BOUNDS'
+
+        # if self.get_bbox_name() in bpy.data.objects:
+        #     obj = bpy.data.objects[self.get_bbox_name()]
+
+        #     # If the object is linked to a collection, unlink it first
+        #     for collection in obj.users_collection:
+        #         collection.objects.unlink(obj)
+
+        #     # Delete the object
+        #     bpy.data.objects.remove(obj)
+
+        # vertices = [
+        #     (0.0,       0.0,        0.0),
+        #     (size[0],   0.0,        0.0),
+        #     (size[0],   size[1],    0.0),
+        #     (0.0,       size[1],    0.0),
+        #     (0.0,       0.0,        size[2]),
+        #     (size[0],   0.0,        size[2]),
+        #     (size[0],   size[1],    size[2]),
+        #     (0.0,       size[1],    size[2])
+        # ]           
+            
+
+        # # Define the edges for the cube
+        # #edges = []
+        # edges = [
+        #     (0, 1),
+        #     (1, 2),
+        #     (2, 3),
+        #     (3, 0),
+        #     (4, 5),
+        #     (5, 6),
+        #     (6, 7),
+        #     (7, 4),
+        #     (0, 4),
+        #     (1, 5),
+        #     (2, 6),
+        #     (3, 7)
+        # ]
+        # faces = []
+
         # Calculate size and center position
-        size = tuple(upper - lower for upper, lower in zip(upper_vertex, lower_vertex))
-        center = tuple(lower + (size_dim / 2.0) for lower, size_dim in zip(lower_vertex, size))
-
-        # Create a cube mesh
-        # if "HayStack BBOX" in bpy.data.objects:
-        #     self.haystack_bbox = bpy.data.objects["HayStack BBOX"]
-        # else:
-        #     bpy.ops.mesh.primitive_cube_add(size=1) # (size=1, location=center)
-        #     self.haystack_bbox = context.view_layer.objects.active
-        #     self.haystack_bbox.name = "HayStack BBOX"
-
-        # context.view_layer.objects.active = self.haystack_bbox
-
-        # self.haystack_bbox.location=center
-
-        # # Scale the cube to the desired size
-        # self.haystack_bbox.scale = (size[0], size[1], size[2])
-
-        # # Set display type to 'BOUNDS'
-        # self.haystack_bbox.display_type = 'BOUNDS'
+        #size = tuple(upper - lower for upper, lower in zip(upper_vertex, lower_vertex))
 
         if self.get_bbox_name() in bpy.data.objects:
             obj = bpy.data.objects[self.get_bbox_name()]
@@ -102,15 +145,16 @@ class HayStackScene:
             bpy.data.objects.remove(obj)
 
         vertices = [
-            (0.0,       0.0,        0.0),
-            (size[0],   0.0,        0.0),
-            (size[0],   size[1],    0.0),
-            (0.0,       size[1],    0.0),
-            (0.0,       0.0,        size[2]),
-            (size[0],   0.0,        size[2]),
-            (size[0],   size[1],    size[2]),
-            (0.0,       size[1],    size[2])
-        ]           
+            (lower_vertex[0], lower_vertex[1], lower_vertex[2]),                         # (0.0, 0.0, 0.0) --> lower_vertex
+            (upper_vertex[0], lower_vertex[1], lower_vertex[2]),                         # (size[0], 0.0, 0.0) --> upper_vertex[0], lower_vertex[1], lower_vertex[2]
+            (upper_vertex[0], upper_vertex[1], lower_vertex[2]),                         # (size[0], size[1], 0.0) --> upper_vertex[0], upper_vertex[1], lower_vertex[2]
+            (lower_vertex[0], upper_vertex[1], lower_vertex[2]),                         # (0.0, size[1], 0.0) --> lower_vertex[0], upper_vertex[1], lower_vertex[2]
+            (lower_vertex[0], lower_vertex[1], upper_vertex[2]),                         # (0.0, 0.0, size[2]) --> lower_vertex[0], lower_vertex[1], upper_vertex[2]
+            (upper_vertex[0], lower_vertex[1], upper_vertex[2]),                         # (size[0], 0.0, size[2]) --> upper_vertex[0], lower_vertex[1], upper_vertex[2]
+            (upper_vertex[0], upper_vertex[1], upper_vertex[2]),                         # (size[0], size[1], size[2]) --> upper_vertex
+            (lower_vertex[0], upper_vertex[1], upper_vertex[2])                          # (0.0, size[1], size[2]) --> lower_vertex[0], upper_vertex[1], upper_vertex[2]
+        ]         
+               
             
 
         # Define the edges for the cube
@@ -129,7 +173,7 @@ class HayStackScene:
             (2, 6),
             (3, 7)
         ]
-        faces = []
+        faces = []        
 
         # Create the new mesh and object
         mesh = bpy.data.meshes.new(self.get_bbox_name())

@@ -53,3 +53,5 @@ samples/advanced/optix7course/models/
 /viewer/blender/addons/hayStack/__pycache__/haystack_remote.cpython-311.pyc
 /viewer/blender/addons/hayStack/__pycache__/haystack_render.cpython-311.pyc
 /viewer/blender/addons/hayStack/__pycache__/haystack_scene.cpython-311.pyc
+/viewer/blender/addons/hayStack/cudart64_12.dll
+/viewer/blender/addons/hayStack/epoxy-0.dll
