@@ -87,6 +87,8 @@ namespace hs {
         sizeOfSphere = sizeof(vec4f);
       } else if (format == "pcr" /*! pr = position color radius :-/ */) {
         sizeOfSphere = 7*sizeof(float);
+      } else if (format == "pcro" /*! position color radius opacity */) {
+        sizeOfSphere = 8*sizeof(float);
       } else if (format == "dlaf") {
         size_t numSpheresInFile;
         int rc;
@@ -275,6 +277,16 @@ namespace hs {
           spheres->origins.push_back(pos);
           spheres->colors.push_back(col);
           spheres->radii.push_back(rad);
+        }
+      } else if (format == "pcro") {
+        struct { vec3f pos; vec3f col; float rad; float opacity; } v;
+        for (size_t i=0;i<my_count;i++) {
+          int rc = fread((char*)&v,sizeof(v),1,file);
+          assert(rc);
+          spheres->origins.push_back(v.pos);
+          spheres->colors.push_back(v.col);
+          spheres->radii.push_back(v.rad);
+          spheres->opacities.push_back(v.opacity);
         }
       } else
         throw std::runtime_error("un-recognized spheres format '"+format+"'");

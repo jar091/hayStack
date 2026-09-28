@@ -50,6 +50,8 @@ namespace hm {
     bool mergeUnstructuredMeshes = false;
     vec4f bgColor { NAN, NAN, NAN, NAN };
     float ambientRadiance = .6f;
+    float surfaceOpacity = 1.f;
+    float surfaceTransmission = 0.f;
     std::string xfFileName = "";
     std::string outFileName = "hayStack.png";
     vec2i fbSize = { 800,600 };
@@ -81,6 +83,8 @@ namespace hm {
     std::cout << "./hs{Offline,Viewer,ViewerQT} ... <args>" << std::endl;
     std::cout << "w/ args:" << std::endl;
     std::cout << "-xf file.xf   ; specify transfer function" << std::endl;
+    std::cout << "--opacity <f> ; opacity of all surface materials (stochastic alpha blend)" << std::endl;
+    std::cout << "--transmission <f> ; use a transmissive physicallyBased material instead of matte" << std::endl;
     if (!error.empty())
       throw std::runtime_error("fatal error: " +error);
     exit(0);
@@ -575,6 +579,10 @@ int main(int ac, char **av)
       fromCL.numFramesAccum = std::stoi(av[++i]);
     } else if (arg == "--ambient") {
       fromCL.ambientRadiance = std::stof(av[++i]);
+    } else if (arg == "--opacity") {
+      fromCL.surfaceOpacity = std::stof(av[++i]);
+    } else if (arg == "--transmission") {
+      fromCL.surfaceTransmission = std::stof(av[++i]);
     } else if (arg == "-spp" || arg == "-ppp" || arg == "--paths-per-pixel") {
       fromCL.spp = std::stoi(av[++i]);
     } else if (arg == "-mum" || arg == "--merge-unstructured-meshes" || arg == "--merge-umeshes") {
@@ -711,6 +719,8 @@ int main(int ac, char **av)
   GlobalRenderSettings globalRenderSettings;
   globalRenderSettings.samplesPerPixel = fromCL.spp;
   globalRenderSettings.ambientRadiance = fromCL.ambientRadiance;
+  globalRenderSettings.surfaceOpacity = fromCL.surfaceOpacity;
+  globalRenderSettings.surfaceTransmission = fromCL.surfaceTransmission;
   globalRenderSettings.bgColor = fromCL.bgColor;
   globalRenderSettings.defaultColorMapIndex = fromCL.cmID;
   

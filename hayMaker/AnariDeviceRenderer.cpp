@@ -286,6 +286,10 @@ namespace hm {
                         "direction", (const anari::math::float3&)camera_dir);
     anari::setParameter(anari.device, anari.camera,
                         "up",        (const anari::math::float3&)camera.vu);
+    // hs::Camera::fovy is in degrees (-fovy on the command line); ANARI
+    // expects radians. Without this the device default (60 deg) is used.
+    anari::setParameter(anari.device, anari.camera,
+                        "fovy",      camera.fovy * float(M_PI) / 180.f);
     anari::commitParameters(anari.device, anari.camera);
   }
   
@@ -534,10 +538,30 @@ namespace hm {
   AnariDeviceRenderer::create(const hs::SphereSet &content)
   {
     bool hasColor = !content.colors.empty();
-    anari::Material material
-      = materialLibrary.getOrCreate(content.material,hasColor);
+    anari::Material material = 0;
+    if (content.opacities.empty()) {
+      material = materialLibrary.getOrCreate(content.material,hasColor);
+      anari::retain(anari.device, material);
+    } else {
+      // per-sphere opacity: needs its own material instance whose
+      // opacity is mapped from vertex.attribute0 (not shared via the
+      // material library)
+      auto matAndColorName = create(content.material);
+      material = matAndColorName.first;
+      if (hasColor)
+        anari::setParameter(anari.device,material,
+                            matAndColorName.second.c_str(),"color");
+      anari::setParameter(anari.device,material,"opacity","attribute0");
+      anari::setParameter(anari.device,material,"alphaMode","blend");
+      anari::commitParameters(anari.device,material);
+    }
     anari::Geometry geom
       = anari::newObject<anari::Geometry>(anari.device, "sphere");
+    if (!content.opacities.empty())
+      anari::setParameterArray1D
+        (anari.device, geom, "vertex.attribute0",
+         (const float*)content.opacities.data(),
+         content.opacities.size());
     anari::setParameterArray1D
       (anari.device, geom, "vertex.position",
        (const anari::math::float3*)content.origins.data(),
@@ -561,7 +585,7 @@ namespace hm {
 
     anari::Surface  surface = anari::newObject<anari::Surface>(anari.device);
     anari::setAndReleaseParameter(anari.device, surface, "geometry", geom);
-    anari::setParameter(anari.device, surface, "material", material);
+    anari::setAndReleaseParameter(anari.device, surface, "material", material);
     anari::commitParameters(anari.device, surface);
 
     return { surface };
@@ -1218,13 +1242,33 @@ namespace hm {
   std::pair<anari::Material,std::string>
   AnariDeviceRenderer::create(mini::Matte::SP matte)
   {
+    const auto &settings = hayMaker->globalRenderSettings;
+    vec3f color = matte->reflectance / 3.14f;
+    if (settings.surfaceTransmission > 0.f) {
+      // glass-like variant of matte, requested via --transmission
+      anari::Material material
+        = anari::newObject<anari::Material>(anari.device, "physicallyBased");
+      anari::setParameter(anari.device,material,"alphaMode","blend");
+      anari::setParameter(anari.device,material,"baseColor",
+                          (const anari::math::float3&)color);
+      anari::setParameter(anari.device,material,"metallic",0.f);
+      anari::setParameter(anari.device,material,"roughness",.1f);
+      anari::setParameter(anari.device,material,"ior",1.33f);
+      anari::setParameter(anari.device,material,"transmission",
+                          settings.surfaceTransmission);
+      anari::setParameter(anari.device,material,"opacity",
+                          settings.surfaceOpacity);
+      anari::commitParameters(anari.device, material);
+      return {material,"baseColor"};
+    }
     anari::Material material
       = anari::newObject<anari::Material>(anari.device, "matte");
     anari::setParameter(anari.device,material,"alphaMode","blend");
-
-    vec3f color = matte->reflectance / 3.14f;
     anari::setParameter(anari.device,material,"color",
                         (const anari::math::float3&)color);
+    if (settings.surfaceOpacity < 1.f)
+      anari::setParameter(anari.device,material,"opacity",
+                          settings.surfaceOpacity);
     anari::commitParameters(anari.device, material);
     return {material,"color"};
   }

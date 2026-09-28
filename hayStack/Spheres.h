@@ -36,6 +36,11 @@ namespace hs {
         for all spheres equally), but if non-empty it has to be the
         same size as `origins` */
     std::vector<float> radii;
+    /*! optional per-sphere opacity in [0,1] - can be empty, but if
+        non-empty it has to be the same size as `origins`. Passed to
+        the renderer as vertex.attribute0 and mapped to the material's
+        opacity */
+    std::vector<float> opacities;
     mini::Material::SP material;
     float radius = .1f;
   };

@@ -18,6 +18,13 @@ namespace hm {
   struct GlobalRenderSettings {
     int   samplesPerPixel = 1;
     float ambientRadiance = .8f;
+
+    /*! opacity applied to all (matte) surface materials; < 1 makes
+        surfaces stochastically transparent (alphaMode=blend) */
+    float surfaceOpacity = 1.f;
+    /*! if > 0, matte surfaces are realized as physicallyBased
+        materials with this transmission (glass-like) */
+    float surfaceTransmission = 0.f;
     
     // invalid value: leave this to the renderer, allowing to create
     // the default gradient
