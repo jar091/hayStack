@@ -3,6 +3,8 @@
 
 #include "hayStack/loader/Capsules.h"
 #include <fstream>
+#include <cstdint>
+#include <cstring>
 
 namespace hs {
   namespace loader {
@@ -300,9 +302,30 @@ namespace hs {
       std::ifstream in(data.where.c_str(),std::ios::binary);
       in.seekg(begin*sizeof(FatCapsule),in.beg);
       in.read((char *)fatCapsules.data(),count*sizeof(FatCapsule));
-      std::map<std::pair<vec4f,vec3f>,int> knownVertices;
+
+      // de-duplicate vertices over (vertex,color). This used to be a
+      // std::map, which took minutes per rank for the 726M-capsule
+      // Droso data set; an open-addressing hash table of indices into
+      // cs->vertices/colors gives the same result (same vertices in
+      // the same order, same indices) in O(1) per lookup.
+      size_t tableSize = 1;
+      while (tableSize < 4*count) tableSize *= 2; // <= 2 vertices per capsule, load factor <= 0.5
+      const size_t tableMask = tableSize-1;
+      std::vector<int> table(tableSize,-1);
+      auto hashKey = [](const vec4f &v, const vec3f &c) -> uint64_t {
+        // '+0.f' maps -0 to +0, which compares equal (as in the std::map)
+        const float f[7] = { v.x+0.f, v.y+0.f, v.z+0.f, v.w+0.f, c.x+0.f, c.y+0.f, c.z+0.f };
+        uint64_t h = 0xcbf29ce484222325ull;
+        for (int i=0;i<7;i++) {
+          uint32_t u; memcpy(&u,&f[i],sizeof(u));
+          h = (h ^ u) * 0x100000001b3ull;
+        }
+        h ^= h >> 33; h *= 0xff51afd7ed558ccdull; h ^= h >> 33;
+        return h;
+      };
+      cs->indices.reserve(count);
       bool hadNanColors = false;
-      for (auto fc : fatCapsules) {
+      for (const auto &fc : fatCapsules) {
         int segmentIndices[2];
         for (int i=0;i<2;i++) {
           const auto &fcv = fc.vertex[i];
@@ -314,16 +337,30 @@ namespace hs {
             color = vec3f(-1.f);
             hadNanColors = true;
           }
-          std::pair<vec4f,vec3f> key = { vertex,color };
-          if (knownVertices.find(key) == knownVertices.end()) {
-            knownVertices[key] = cs->vertices.size();
-            cs->vertices.push_back(vertex);
-            cs->colors.push_back(vec4f(color.x,color.y,color.z,1.f));
+          size_t slot = hashKey(vertex,color) & tableMask;
+          int idx;
+          while (true) {
+            idx = table[slot];
+            if (idx < 0) {
+              idx = (int)cs->vertices.size();
+              table[slot] = idx;
+              cs->vertices.push_back(vertex);
+              cs->colors.push_back(vec4f(color.x,color.y,color.z,1.f));
+              break;
+            }
+            const vec4f &kv = cs->vertices[idx];
+            const vec4f &kc = cs->colors[idx];
+            if (kv.x == vertex.x && kv.y == vertex.y && kv.z == vertex.z && kv.w == vertex.w &&
+                kc.x == color.x && kc.y == color.y && kc.z == color.z)
+              break;
+            slot = (slot+1) & tableMask;
           }
-          segmentIndices[i] = knownVertices[key];
+          segmentIndices[i] = idx;
         }
         cs->indices.push_back(vec2i(segmentIndices[0],segmentIndices[1]));
       }
+      std::cout << "#caps part " << thisPartID << ": " << count << " capsules, "
+                << cs->vertices.size() << " unique vertices" << std::endl;
       for (int i=0;i<4;i++) {
         std::cout << "link " << i << " " << cs->indices[i]
                   << " = " << cs->vertices[cs->indices[i].x]
